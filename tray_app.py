@@ -172,6 +172,12 @@ class TrayPopup(QWidget):
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(8, 8, 8, 8)
 
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_content = QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setContentsMargins(4, 4, 4, 4)
+
         grp_folder = QGroupBox("Image Folder")
         fl = QHBoxLayout(grp_folder)
         self.folder_input = QLineEdit(self.config.get("IMAGE_FOLDER", ""))
@@ -179,7 +185,7 @@ class TrayPopup(QWidget):
         btn_browse.clicked.connect(self._browse)
         fl.addWidget(self.folder_input)
         fl.addWidget(btn_browse)
-        layout.addWidget(grp_folder)
+        scroll_layout.addWidget(grp_folder)
 
         grp_sched = QGroupBox("Photo Posting Schedule")
         sl = QFormLayout(grp_sched)
@@ -198,7 +204,7 @@ class TrayPopup(QWidget):
         sl.addRow("Delay after boot:", self.boot_delay)
         sl.addRow("Min interval:", self.min_hours)
         sl.addRow("Max interval:", self.max_hours)
-        layout.addWidget(grp_sched)
+        scroll_layout.addWidget(grp_sched)
 
         grp_reel_sched = QGroupBox("Reel Posting Schedule")
         rl = QFormLayout(grp_reel_sched)
@@ -217,7 +223,7 @@ class TrayPopup(QWidget):
         rl.addRow("Delay after boot:", self.reel_boot_delay)
         rl.addRow("Min interval:", self.reel_min_hours)
         rl.addRow("Max interval:", self.reel_max_hours)
-        layout.addWidget(grp_reel_sched)
+        scroll_layout.addWidget(grp_reel_sched)
 
         from PyQt6.QtWidgets import QComboBox
         grp_sort = QGroupBox("Media Sort Order")
@@ -233,7 +239,7 @@ class TrayPopup(QWidget):
                 self.sort_combo.setCurrentIndex(i)
                 break
         sol.addRow("Order:", self.sort_combo)
-        layout.addWidget(grp_sort)
+        scroll_layout.addWidget(grp_sort)
 
         # === DRY RUN / TEST MODE ===
         grp_dry = QGroupBox("Test Mode (Dry Run)")
@@ -245,7 +251,7 @@ class TrayPopup(QWidget):
         hint.setStyleSheet("font-size: 10px; color: #aaa;")
         hint.setWordWrap(True)
         dl.addWidget(hint)
-        layout.addWidget(grp_dry)
+        scroll_layout.addWidget(grp_dry)
         # === PHONE NOTIFICATIONS ===
         grp_ntfy = QGroupBox("Phone Notifications (ntfy.sh)")
         nl = QVBoxLayout(grp_ntfy)
@@ -260,7 +266,7 @@ class TrayPopup(QWidget):
         ntfy_hint.setStyleSheet("font-size: 10px; color: #aaa;")
         ntfy_hint.setWordWrap(True)
         nl.addWidget(ntfy_hint)
-        layout.addWidget(grp_ntfy)
+        scroll_layout.addWidget(grp_ntfy)
 
 
         grp_cred = QGroupBox("Instagram Credentials")
@@ -271,7 +277,11 @@ class TrayPopup(QWidget):
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         cl.addRow("Username:", self.username_input)
         cl.addRow("Password:", self.password_input)
-        layout.addWidget(grp_cred)
+        scroll_layout.addWidget(grp_cred)
+
+        scroll_layout.addStretch()
+        scroll.setWidget(scroll_content)
+        layout.addWidget(scroll)
 
         btn_save = QPushButton("Save Settings")
         btn_save.clicked.connect(self._save_settings)

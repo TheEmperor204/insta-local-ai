@@ -68,7 +68,7 @@ A fully local, privacy-first Instagram auto-poster for photos and reels. Uses lo
 
 Clone the repo, copy the example config, and install dependencies:
 
-    git clone https://github.com/TheEmperor204/insta-local-ai.git
+    git clone https://github.com/your-username/insta-local-ai.git
     cd insta-local-ai
     cp .env.example .env
     pip install -r requirements.txt
@@ -135,4 +135,4 @@ Instagram Terms of Service generally prohibit automated posting through unoffici
 
 ## License
 
-MIT License. See LICENSE file for details.
+GNU Affero General Public License v3.0. See LICENSE file for details.

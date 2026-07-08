@@ -22,7 +22,7 @@ import base64
 from pathlib import Path
 from datetime import datetime
 from music_overlay import add_music_to_video
-from progress_writer import update_progress, clear_progress, add_error, clear_error, get_approval_for_video, remove_approval_for_video, save_on_hold_video, remove_on_hold_video, get_on_hold_videos, save_skip_segments, get_skip_segments, clear_skip_segments, send_notification, signal_explicit_detected, clear_explicit_trigger
+from progress_writer import update_progress, clear_progress, add_error, clear_error, get_approval_for_video, remove_approval_for_video, save_on_hold_video, remove_on_hold_video, get_on_hold_videos, save_skip_segments, get_skip_segments, clear_skip_segments, send_notification, signal_explicit_detected, clear_explicit_trigger, clear_failed_upload, increment_retry
 
 from dotenv import load_dotenv
 load_dotenv(override=True)
@@ -638,7 +638,7 @@ def is_video_already_posted(video_path):
     if POSTED_VIDEOS_TXT.exists():
         try:
             posted_names = POSTED_VIDEOS_TXT.read_text().splitlines()
-            if video_name in posted_names:
+            if any(video_name in line for line in posted_names):
                 return True
         except Exception:
             pass
@@ -973,6 +973,36 @@ def update_segment_status(segment_path, status="posted"):
     save_reels_log(data)
     return video_key, data
 
+def register_single_video(video_path, duration):
+    """Register a non-segmented video in posted_reels.json."""
+    data = get_reels_log()
+    video_key = str(video_path.resolve())
+    video_name = video_path.name
+    if video_key not in data.get("videos", {}):
+        data["videos"][video_key] = {
+            "video_name": video_name,
+            "status": "complete",
+            "segments_total": 1,
+            "segments_posted": 1,
+            "segments": [
+                {
+                    "name": video_name,
+                    "path": video_key,
+                    "status": "posted",
+                    "posted_at": datetime.now().isoformat()
+                }
+            ],
+            "duration": duration,
+            "date_created": datetime.fromtimestamp(video_path.stat().st_mtime).isoformat(),
+            "first_posted_at": datetime.now().isoformat(),
+            "completed_at": datetime.now().isoformat(),
+            "archived_to": ""
+        }
+        data["last_post_time"] = datetime.now().isoformat()
+        save_reels_log(data)
+        log.info(f"Registered single video in posted_reels.json: {video_name}")
+
+
 def archive_original_video(video_key):
     if not video_key:
         return
@@ -1242,7 +1272,7 @@ def run_once():
                 parent = current_segment.name.rsplit("_part", 1)[0] if "_part" in current_segment.name else current_segment.name
                 clear_skip_segments(parent)
 
-        return True
+            return True
         try:
             success = upload_reel_to_instagram(str(video_to_use), caption)
         except Exception as e:
@@ -1262,13 +1292,14 @@ def run_once():
                 video_key, data = update_segment_status(current_segment, "posted")
                 delete_segment_file(current_segment)
                 handle_completed_segments(video_key, data)
-            remaining = [p for p in TEMP_SEGMENTS_DIR.iterdir() if p.is_file() and p.suffix.lower() in VIDEO_EXTS] if TEMP_SEGMENTS_DIR.exists() else []
-            if not remaining:
-                parent = current_segment.name.rsplit("_part", 1)[0] if "_part" in current_segment.name else current_segment.name
-                clear_skip_segments(parent)
+                remaining = [p for p in TEMP_SEGMENTS_DIR.iterdir() if p.is_file() and p.suffix.lower() in VIDEO_EXTS] if TEMP_SEGMENTS_DIR.exists() else []
+                if not remaining:
+                    parent = current_segment.name.rsplit("_part", 1)[0] if "_part" in current_segment.name else current_segment.name
+                    clear_skip_segments(parent)
             else:
                 # Single video in videos_to_upload/ — archive to YouTube-ready folder
                 seg_duration = get_video_duration(current_segment)
+                register_single_video(current_segment, seg_duration)
                 archive_original_video(str(current_segment))
                 log_to_posted_txt(current_segment.name,
                                   f"{seg_duration:.1f}s, single Reel")
