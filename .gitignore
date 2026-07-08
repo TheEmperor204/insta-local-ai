@@ -1,0 +1,63 @@
+# === Secrets & credentials ===
+.env
+.env.*
+ig_session.json
+
+# === Virtual environments ===
+insta-env/
+*-env/
+venv/
+.venv/
+
+# === Python cache ===
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# === Runtime JSON / data files ===
+posted_images.json
+posted_reels.json
+approval_queue.json
+on_hold_videos.json
+skip_segments.json
+explicit_trigger.json
+progress_status.json
+failed_uploads.json
+music_config.json
+schedule_config.json
+posted_videos.txt
+
+# === Media and content folders ===
+images_to_post/
+posted_images/
+videos_to_upload/
+temp_segments/
+explicit_videos/
+insta_posted_youtube_ready/
+duplicates/
+video_duplicates/
+Default_Music/
+Adventure_Music/
+Action_Sport_Music/
+
+# === Backups and temp files ===
+*.bak
+*.bak2
+_patch*.py
+_add*.py
+_test*.py
+
+# === Personal docs ===
+insta doc*.txt
+*.doc*.txt
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Editor ===
+*.swp
+*.swo
+*~
+caption_persona.py
