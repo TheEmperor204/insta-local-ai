@@ -204,7 +204,7 @@ def get_system_uptime_seconds():
     except Exception:
         return 0
 
-def is_gpu_busy(threshold_percent=60):
+def is_gpu_busy(threshold_percent=40):
     gpu_paths = glob.glob("/sys/class/drm/card*/device/gpu_busy_percent")
     for path in gpu_paths:
         try:
@@ -230,9 +230,21 @@ def is_cpu_busy(threshold_percent=80):
         return False
 
 def wait_if_busy(max_wait_minutes=30):
+    if os.getenv("GPU_GUARD", "true").lower() not in ["true", "1", "yes"]:
+        return True  # GPU guard disabled
+
     waited = 0
     while waited < max_wait_minutes * 60:
-        if not is_gpu_busy() and not is_cpu_busy():
+        checks_passed = 0
+        for _ in range(3):
+            if not is_gpu_busy() and not is_cpu_busy():
+                checks_passed += 1
+            else:
+                checks_passed = 0
+            if checks_passed < 3:
+                time.sleep(15)
+                waited += 15
+        if checks_passed >= 3:
             return True
         log.info("System busy, waiting 30s...")
         time.sleep(30)
@@ -535,7 +547,7 @@ def bleep_audio(video_path, word_times):
     cmd = [
         "ffmpeg", "-y", "-i", str(video_path),
         "-af", f"volume=0:enable={enable_parts}",
-        "-c:v", "copy", "-c:a", "aac",
+        "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
         "-movflags", "+faststart",
         output_path
     ]

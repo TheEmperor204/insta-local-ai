@@ -16,11 +16,10 @@ CONFIG_FILE = APP_DIR / "music_config.json"
 DEFAULT_CONFIG = {
     "enabled": False,
     "mode": "all",
-    "min_word_count": 5,
     "categories": {
-        "default": {"folder": str(APP_DIR / "Default_Music"), "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""},
-        "adventure": {"folder": str(APP_DIR / "Adventure_Music"), "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""},
-        "action_sport": {"folder": str(APP_DIR / "Action_Sport_Music"), "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""}
+        "default": {"folder": str(APP_DIR / "Default_Music"), "word_count": 5, "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""},
+        "adventure": {"folder": str(APP_DIR / "Adventure_Music"), "word_count": 5, "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""},
+        "action_sport": {"folder": str(APP_DIR / "Action_Sport_Music"), "word_count": 5, "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""}
     }
 }
 
@@ -74,14 +73,14 @@ def detect_category(vision_text):
         return 'action_sport'
     return 'default'
 
-def should_add_music(transcript, config):
+def should_add_music(transcript, config, category="default"):
     if not config.get('enabled', False):
         return False
     if config.get('mode', 'all') == 'all':
         return True
     if config.get('mode', 'all') == 'no_talking':
         words = transcript.strip().split() if transcript else []
-        return len(words) < config.get('min_word_count', 5)
+        return len(words) < config.get('categories', {}).get(category, {}).get('word_count', 5)
     return False
 
 def select_song(cat_config):
@@ -150,7 +149,7 @@ def overlay_music(video_path, music_clip_path):
         subprocess.run(
             ['ffmpeg', '-y', '-i', str(video_path), '-i', str(music_clip_path),
              '-filter_complex', amix, '-map', '0:v', '-map', '[aout]',
-             '-c:v', 'copy', '-c:a', 'aac', '-shortest', str(tmp)],
+             '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', str(tmp)],
             capture_output=True, timeout=120
         )
         if tmp.exists() and tmp.stat().st_size > 0:
@@ -163,9 +162,9 @@ def overlay_music(video_path, music_clip_path):
 
 def add_music_to_video(video_path, vision_text, transcript):
     config = load_config()
-    if not should_add_music(transcript, config):
-        return video_path, None
     category = detect_category(vision_text)
+    if not should_add_music(transcript, config, category):
+        return video_path, None
     cat_config = config['categories'].get(category, config['categories']['default'])
     song = select_song(cat_config)
     if song is None:
