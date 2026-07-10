@@ -198,14 +198,23 @@ class TrayPopup(QWidget):
         scroll_layout.addWidget(grp_vid)
         
         # Archive Folder selector
-        grp_arch = QGroupBox("Posted Archive Folder")
+        grp_arch = QGroupBox("Video Archive Folder")
         al = QHBoxLayout(grp_arch)
-        self.archive_folder_input = QLineEdit(self.config.get("POSTED_REELS_DIR", "insta_posted_youtube_ready"))
+        self.video_archive_input = QLineEdit(self.config.get("POSTED_REELS_DIR", "insta_posted_youtube_ready"))
         btn_browse_arch = QPushButton("Browse")
-        btn_browse_arch.clicked.connect(lambda: self._browse_folder(self.archive_folder_input, "Select Archive Folder"))
+        btn_browse_arch.clicked.connect(lambda: self._browse_folder(self.video_archive_input, "Select Archive Folder"))
         al.addWidget(self.archive_folder_input)
         al.addWidget(btn_browse_arch)
         scroll_layout.addWidget(grp_arch)
+        # Image Archive Folder selector
+        grp_img_arch = QGroupBox("Image Archive Folder")
+        il = QHBoxLayout(grp_img_arch)
+        self.image_archive_input = QLineEdit(self.config.get("POSTED_IMAGES_DIR", "posted_images"))
+        btn_browse_img_arch = QPushButton("Browse")
+        btn_browse_img_arch.clicked.connect(lambda: self._browse_folder(self.image_archive_input, "Select Image Archive Folder"))
+        il.addWidget(self.image_archive_input)
+        il.addWidget(btn_browse_img_arch)
+        scroll_layout.addWidget(grp_img_arch)
 
         grp_sched = QGroupBox("Photo Posting Schedule")
         sl = QFormLayout(grp_sched)
@@ -343,7 +352,8 @@ class TrayPopup(QWidget):
         self.config.save({
             "IMAGE_FOLDER": self.folder_input.text(),
             "VIDEO_FOLDER": self.video_folder_input.text(),
-            "POSTED_REELS_DIR": self.archive_folder_input.text(),
+            "POSTED_REELS_DIR": self.video_archive_input.text(),
+            "POSTED_IMAGES_DIR": self.image_archive_input.text(),
             "DELAY_AFTER_BOOT_MINUTES": str(self.boot_delay.value()),
             "MIN_INTERVAL_HOURS": str(self.min_hours.value()),
             "MAX_INTERVAL_HOURS": str(self.max_hours.value()),
