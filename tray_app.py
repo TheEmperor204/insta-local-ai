@@ -187,6 +187,26 @@ class TrayPopup(QWidget):
         fl.addWidget(btn_browse)
         scroll_layout.addWidget(grp_folder)
 
+        # Video Folder selector
+        grp_vid = QGroupBox("Video Folder")
+        vl = QHBoxLayout(grp_vid)
+        self.video_folder_input = QLineEdit(self.config.get("VIDEO_FOLDER", "videos_to_upload"))
+        btn_browse_vid = QPushButton("Browse")
+        btn_browse_vid.clicked.connect(lambda: self._browse_folder(self.video_folder_input, "Select Video Folder"))
+        vl.addWidget(self.video_folder_input)
+        vl.addWidget(btn_browse_vid)
+        scroll_layout.addWidget(grp_vid)
+        
+        # Archive Folder selector
+        grp_arch = QGroupBox("Posted Archive Folder")
+        al = QHBoxLayout(grp_arch)
+        self.archive_folder_input = QLineEdit(self.config.get("POSTED_REELS_DIR", "insta_posted_youtube_ready"))
+        btn_browse_arch = QPushButton("Browse")
+        btn_browse_arch.clicked.connect(lambda: self._browse_folder(self.archive_folder_input, "Select Archive Folder"))
+        al.addWidget(self.archive_folder_input)
+        al.addWidget(btn_browse_arch)
+        scroll_layout.addWidget(grp_arch)
+
         grp_sched = QGroupBox("Photo Posting Schedule")
         sl = QFormLayout(grp_sched)
         self.boot_delay = QSpinBox()
@@ -252,6 +272,18 @@ class TrayPopup(QWidget):
         hint.setWordWrap(True)
         dl.addWidget(hint)
         scroll_layout.addWidget(grp_dry)
+
+        # === GPU GUARD ===
+        grp_gpu = QGroupBox("GPU Guard")
+        gl = QVBoxLayout(grp_gpu)
+        self.gpu_guard_checkbox = QCheckBox("Enable GPU/CPU load check before processing")
+        self.gpu_guard_checkbox.setChecked(self.config.get("GPU_GUARD", "true").lower() == "true")
+        gl.addWidget(self.gpu_guard_checkbox)
+        gpu_hint = QLabel("When ON: waits for GPU/CPU to be idle before starting each cycle.")
+        gpu_hint.setStyleSheet("font-size: 10px; color: #aaa;")
+        gpu_hint.setWordWrap(True)
+        gl.addWidget(gpu_hint)
+        scroll_layout.addWidget(grp_gpu)
         # === PHONE NOTIFICATIONS ===
         grp_ntfy = QGroupBox("Phone Notifications (ntfy.sh)")
         nl = QVBoxLayout(grp_ntfy)
@@ -294,6 +326,11 @@ class TrayPopup(QWidget):
         if folder:
             self.folder_input.setText(folder)
 
+    def _browse_folder(self, line_edit, title):
+        folder = QFileDialog.getExistingDirectory(self, title)
+        if folder:
+            line_edit.setText(folder)
+
     def _save_settings(self):
         if self.max_hours.value() < self.min_hours.value():
             QMessageBox.warning(self, "Invalid", "Photo max interval must be >= min interval")
@@ -305,6 +342,8 @@ class TrayPopup(QWidget):
             keyring.set_password(KEYRING_SERVICE, KEYRING_KEY, self.password_input.text())
         self.config.save({
             "IMAGE_FOLDER": self.folder_input.text(),
+            "VIDEO_FOLDER": self.video_folder_input.text(),
+            "POSTED_REELS_DIR": self.archive_folder_input.text(),
             "DELAY_AFTER_BOOT_MINUTES": str(self.boot_delay.value()),
             "MIN_INTERVAL_HOURS": str(self.min_hours.value()),
             "MAX_INTERVAL_HOURS": str(self.max_hours.value()),
@@ -313,6 +352,7 @@ class TrayPopup(QWidget):
             "REEL_MAX_INTERVAL_HOURS": str(self.reel_max_hours.value()),
             "SORT_ORDER": self.sort_combo.currentData(),
             "DRY_RUN": "true" if self.dry_run_checkbox.isChecked() else "false",
+            "GPU_GUARD": "true" if self.gpu_guard_checkbox.isChecked() else "false",
             "IG_USERNAME": self.username_input.text(),
             "NTFY_TOPIC": self.ntfy_topic.text() if self.ntfy_enable.isChecked() else "",
         })
