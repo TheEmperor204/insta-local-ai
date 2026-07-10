@@ -203,7 +203,7 @@ class TrayPopup(QWidget):
         self.video_archive_input = QLineEdit(self.config.get("POSTED_REELS_DIR", "insta_posted_youtube_ready"))
         btn_browse_arch = QPushButton("Browse")
         btn_browse_arch.clicked.connect(lambda: self._browse_folder(self.video_archive_input, "Select Archive Folder"))
-        al.addWidget(self.archive_folder_input)
+        al.addWidget(self.video_archive_input)
         al.addWidget(btn_browse_arch)
         scroll_layout.addWidget(grp_arch)
         # Image Archive Folder selector
