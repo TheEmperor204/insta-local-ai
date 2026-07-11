@@ -10,11 +10,11 @@ CONFIG_FILE = APP_DIR / "music_config.json"
 CATEGORIES = ["default", "adventure", "action_sport"]
 
 DEFAULT_CONFIG = {
-    "enabled": False, "mode": "all", "min_word_count": 5,
+    "enabled": False, "mode": "all",
     "categories": {
-        "default": {"folder": str(APP_DIR / "Default_Music"), "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""},
-        "adventure": {"folder": str(APP_DIR / "Adventure_Music"), "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""},
-        "action_sport": {"folder": str(APP_DIR / "Action_Sport_Music"), "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""}
+        "default": {"folder": str(APP_DIR / "Default_Music"), "word_count": 5, "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""},
+        "adventure": {"folder": str(APP_DIR / "Adventure_Music"), "word_count": 5, "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""},
+        "action_sport": {"folder": str(APP_DIR / "Action_Sport_Music"), "word_count": 5, "volume": 50, "clip_mode": "highlight", "song_selection": "random", "specific_song": ""}
     }
 }
 
@@ -66,12 +66,6 @@ class MusicTab(QWidget):
         gl.addWidget(self.mode_cb)
         
         # Min word count
-        wlbl = QLabel('Min word count (for no-talking mode):')
-        gl.addWidget(wlbl)
-        self.min_words_spin = QSpinBox()
-        self.min_words_spin.setRange(1, 50)
-        self.min_words_spin.setValue(self.config.get('min_word_count', 5))
-        gl.addWidget(self.min_words_spin)
         
         layout.addWidget(grp_global)
 
@@ -135,6 +129,13 @@ class MusicTab(QWidget):
         cml.addWidget(self.clip_cb)
         cl.addLayout(cml)
         
+        wcl = QHBoxLayout()
+        wcl.addWidget(QLabel("Word count threshold:"))
+        self.word_spin = QSpinBox()
+        self.word_spin.setRange(1, 50)
+        wcl.addWidget(self.word_spin)
+        cl.addLayout(wcl)
+
         layout.addWidget(self.grp_cat)
 
         # Save button
@@ -160,6 +161,7 @@ class MusicTab(QWidget):
         vi = self.vol_cb.findData(cc.get('volume', 50))
         if vi >= 0: self.vol_cb.setCurrentIndex(vi)
         ci = self.clip_cb.findData(cc.get('clip_mode', 'highlight'))
+        self.word_spin.setValue(cc.get("word_count", 5))
         if ci >= 0: self.clip_cb.setCurrentIndex(ci)
     
     def refresh_song_list(self):
@@ -187,11 +189,11 @@ class MusicTab(QWidget):
     def save_settings(self):
         self.config['enabled'] = self.enable_cb.isChecked()
         self.config['mode'] = self.mode_cb.currentData()
-        self.config['min_word_count'] = self.min_words_spin.value()
         cc = self.config['categories'][self.current_category]
         cc['folder'] = self.folder_lbl.text()
         cc['volume'] = self.vol_cb.currentData()
         cc['clip_mode'] = self.clip_cb.currentData()
+        cc['word_count'] = self.word_spin.value()
         cc['song_selection'] = self.song_cb.currentData()
         cc['specific_song'] = self.specific_cb.currentText() if self.song_cb.currentData() == 'specific' else ''
         save_config(self.config)

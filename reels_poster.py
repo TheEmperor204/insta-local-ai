@@ -89,7 +89,7 @@ def load_bleep_config():
 BLEEP_WORDS, BLEEP_ENABLED = load_bleep_config()
 
 DRY_RUN = os.getenv("DRY_RUN", "false").lower() == "true"
-DRY_RUN_DIR = Path.home() / "Desktop" / "INSTAI_TEST_OUTPUT"
+DRY_RUN_DIR = Path(__file__).parent / "INSTAI_TEST_OUTPUT"
 
 # Stricter prompt for video frame analysis — prevents speculation
 VIDEO_FRAME_PROMPT = "Describe visible actions, objects, and equipment. Format: A person [action]. Objects: [concrete items]. Equipment/Activity: [specific if visible]. Setting: [brief]. Identify recognizable gear like tubes, skis, boats, ropes. Avoid guessing emotions, thoughts, or events before/after. If unclear, write action unclear. 3 sentences max."
@@ -100,7 +100,7 @@ for _d in [VIDEO_FOLDER_PATH, POSTED_REELS_DIR, TEMP_SEGMENTS_DIR, EXPLICIT_VIDE
 
 VIDEO_EXTS = {".mp4", ".mov", ".avi"}
 
-PYTHON312 = "python3.12"
+PYTHON312 = sys.executable
 TRANSCRIBE_HELPER = str(Path(__file__).resolve().parent / "transcribe_helper.py")
 
 try:
@@ -152,7 +152,7 @@ def start_ollama_if_needed():
     for i in range(30):
         if is_ollama_running():
             log.info("Ollama started successfully")
-            return True
+        return True
         time.sleep(1)
     log.error("Ollama failed to start within 30 seconds")
     add_error("Ollama failed to start within 30 seconds")
@@ -1284,7 +1284,7 @@ def run_once():
                 parent = current_segment.name.rsplit("_part", 1)[0] if "_part" in current_segment.name else current_segment.name
                 clear_skip_segments(parent)
 
-            return True
+        return True
         try:
             success = upload_reel_to_instagram(str(video_to_use), caption)
         except Exception as e:
