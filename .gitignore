@@ -61,3 +61,7 @@ Thumbs.db
 *.swo
 *~
 caption_persona.py
+
+# Test output folders
+INSTAI_TEST_OUTPUT/
+YT_TEST_OUTPUT/
